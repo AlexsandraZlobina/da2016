@@ -1,0 +1,166 @@
+---
+title: "hw2"
+output: html_document
+---
+#Домашняя работа 2
+
+##Загрузка и очистка данных
+```{r}
+data = read.csv("https://raw.githubusercontent.com/SergeyMirvoda/da2016/master/data/calif_penn_2011.csv")
+
+```
+Количество строк
+```{r}
+nrow(data)
+```
+Количество столбцов
+```{r}
+ncol(data)
+```
+Выполните следующую команду 
+```{r}
+colSums(apply(data,c(1,2), is.na))
+```
+Проверяются все столбцы на появление значения NA и выводится количество этих значений
+
+Создание нового фрейма без значений NA
+```{r}
+new = na.omit(data)
+```
+
+```{r}
+nrow(data) - nrow(new)
+```
+670 строк было удалено, результат не соответствует, однако это объясняется наличием нескольких NA в одной строке
+
+##Новые дома
+
+Построение диаграммы рассеяния (scatterplot) медианы стоимости домов (переменная Median_house_value) относительно процента новых домов
+```{r}
+Build_data = new[,"Built_2005_or_later"]
+House_value = new[, "Median_house_value"]
+
+plot(Build_data, House_value, main = "Cтоимость домов относительно процента новых", xlab ="Built 2005 or later", ylab = "Median house value" )
+```
+
+Отдельно для Калифорнии
+```{r}
+Build_data_California = new$Built_2005_or_later[new$STATEFP==6]
+House_value_California = new$Median_house_value[new$STATEFP==6]
+plot(Build_data_California, House_value_California, main = "Cтоимость домов относительно процента новых в Калифорнии", xlab ="Built 2005 or later", ylab = "Median house value" )
+```
+
+Отдельно для Пенсильвании
+```{r}
+Build_data_Pensilvania = new$Built_2005_or_later[new$STATEFP==42]
+House_value_Pensilvania = new$Median_house_value[new$STATEFP==42]
+plot(Build_data_Pensilvania, House_value_Pensilvania, main = "Cтоимость домов относительно процента новых в Пенсильвании", xlab ="Built 2005 or later", ylab = "Median house value" )
+```
+
+##Незанятые дома
+
+В датафрейм data добавили новую колонку vacancy_rate
+```{r}
+data$vacancy_rate = data$Total_units/data$Vacant_units
+```
+
+Изменим отсутствующие значения
+```{r}
+data$vacancy_rate[data$vacancy_rate == Inf] = NaN
+
+```
+
+Находим максимум, минимум, среднее и медиану
+```{r}
+ max(data$vacancy_rate,na.rm=TRUE)
+ min(data$vacancy_rate,na.rm=TRUE)
+ mean(data$vacancy_rate,na.rm = TRUE)
+ median(data$vacancy_rate,na.rm = TRUE)
+```
+Постройте диаграмму уровня найма относительно медианы стоимости домов
+```{r}
+plot (data$vacancy_rate, data$Median_house_value )
+```
+Заметно небольшое уменьшение количества свободных домов по мере увеличения медианы
+
+##Корреляция
+
+Код производит обход по датафрейму и выбирает штат Калифорния и округ 1, и добавляет номер строки в вектор. Далее цикл перебирает вектор acc и выбирает значения Median_house_value,которые попадают в вектор accmv и находится медиана
+
+```{r}
+acc <- c()
+for (tract in 1:nrow(data)) {
+  if (data$STATEFP[tract] == 6) {
+    if (data$COUNTYFP[tract] == 1) {
+      acc <- c(acc, tract)
+    }
+  }
+}
+accmv <- c()
+for (tract in acc) {
+  accmv <- c(accmv, data[tract,10])
+}
+median(accmv)
+```
+То же самое, только короче
+```{r}
+MHV = subset(data, data$STATEFP==6, data$COUNTYFP==1, select = Median_house_value)
+median(MHV)
+```
+Найдите средний процент построенных домовладений в округах (Butte County, Santa Clara, York County)
+```{r}
+BC = subset(data, data$STATEFP==6 & data$COUNTYFP==7, select = Built_2005_or_later)
+SC = subset(data, data$STATEFP==6 & data$COUNTYFP==85, select = Built_2005_or_later)
+YC = subset(data, data$STATEFP==42 & data$COUNTYFP==133, select = Built_2005_or_later)
+```
+```{r}
+mean(BC$Built_2005_or_late,na.rm=T)
+mean(SC$Built_2005_or_late,na.rm=T)
+mean(YC$Built_2005_or_later,na.rm=T)
+```
+Рассчитайте корреляцию между медианы стоимости домовладений (Median_house_value) и процентом построенных домов (Built_2005_or_later)
+для всего набора данных
+```{r}
+cor(data$Median_house_value, data$Built_2005_or_later, use = "pairwise.complete.obs")
+```
+для Калифорнии
+```{r}
+cor (House_value_California, Build_data_California, use = "pairwise.complete.obs")
+```
+
+Для Пенсильвании
+```{r}
+cor(House_value_Pensilvania, Build_data_Pensilvania, use = "pairwise.complete.obs")
+```
+для округа Butte County
+
+```{r}
+Butte_County = subset(data, data$STATEFP==6 & data$COUNTYFP==7, select = Median_house_value)
+
+cor(BC, Butte_County, use = "pairwise.complete.obs")
+```
+для округа Santa Clara
+```{r}
+Santa_Clara = subset(data, data$STATEFP==6 & data$COUNTYFP==85, select = Median_house_value)
+cor(SC, Santa_Clara, use = "pairwise.complete.obs")
+```
+для округа York County
+```{r}
+York_County = subset(data, data$STATEFP==42 & data$COUNTYFP==133, select = Median_house_value)
+cor(YC,York_County, use = "pairwise.complete.obs")
+```
+
+Постройте три диаграммы медианы стоимости домовладений (Median_house_value) относительно медианы дохода (Median_household_income) для трёх округов
+
+```{r}
+MHIBC = subset(data, data$STATEFP==6 & data$COUNTYFP==7, select = Median_household_income)
+MHISC = subset(data, data$STATEFP==6 & data$COUNTYFP==85, select = Median_household_income)
+MHIYC = subset(data, data$STATEFP==42 & data$COUNTYFP==133, select = Median_household_income)
+
+par(mfrow=c(1,3))
+
+plot(Butte_County$Median_house_value,MHIBC$Median_household_income, main = "Butte County", xlab = "Median house value", ylab = "Median household income")
+plot(Santa_Clara$Median_house_value,MHISC$Median_household_income, main = "Santa Clara", xlab = "Median house value", ylab = "Median household income")
+plot(York_County$Median_house_value,MHIYC$Median_household_income, main = "York County", xlab = "Median house value", ylab = "Median household income")
+```
+
