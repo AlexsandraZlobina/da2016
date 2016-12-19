@@ -19,7 +19,7 @@ Cреднеквадратичное отклонение
 ```{r}
 sd(cats$Hwt)
 ```
-Lисперсиz
+Дисперсия
 ```{r}
 var(cats$Hwt)
 ```
@@ -73,6 +73,16 @@ hist(Catgirls$Hwt, main = "Гистограмма веса сердец коше
 curve(dgamma(x, shape = asCatgirls[1], scale = asCatgirls[2]), from = 0, to = 25,add=TRUE)
 ```
 
+```{r}
+hist(cats$Hwt, main = "Гистограмма кошачьих весов", xlab = "Вес сердца в граммах", prob=TRUE,breaks = 25,col.main = "blue", col = "lightblue")
+legend("topright", legend = c("Коты", "Кошки"),
+lwd=2, col=c("red","orange"))
+curve(dgamma(x, shape = asCatboys[1], scale = asCatboys[2]), from = 0, to = 25, add=TRUE, lwd = 3,col = "red")
+curve(dgamma(x, shape = asCatgirls[1], scale = asCatgirls[2]), from = 0, to = 25,add=TRUE, lwd = 3, col= "orange")
+
+```
+
+
 Случайным образом разделите данные на две группы одного размера равного количеству котов и кошек соответственно. Получите гамма-параметры для обеих групп. Повторите эксперимент несколько раз. Найдите среднюю разницу между результатами групп.
 
 ```{r}
@@ -92,18 +102,45 @@ CM7 = sample(cats$Hwt, nrow(Catboys))
 CM8 = sample(cats$Hwt, nrow(Catgirls)) 
 asCM7 = my.gamma(CM7)
 asCM8 = my.gamma(CM8)
-df=data.frame(asCM1,asCM2,asCM3,asCM4,asCM5,asCM6,asCM7,asCM8,row.names= c("a","s"))
-df
+```
+
+```{r}
+dfCatboys=matrix(c(asCM1[1],asCM3[1],asCM5[1],asCM7[1],asCM1[2],asCM3[2],asCM5[2],asCM7[2]), nrow=4, ncol=2)
+dfCatboys=data.frame(dfCatboys)
+names(dfCatboys)[1] = "a"
+names(dfCatboys)[2] = "s"
+dfCatgirls=matrix(c(asCM2[1],asCM4[1],asCM6[1],asCM8[1],asCM2[2],asCM4[2],asCM6[2],asCM8[2]), nrow=4, ncol=2)
+dfCatgirls=data.frame(dfCatgirls)
+names(dfCatgirls)[1] = "a"
+names(dfCatgirls)[2] = "s"
+dfCatboys
+dfCatgirls
+
+```
+
+
+
+```{r}
+colMeans(dfCatboys)
+colMeans(dfCatgirls)
+print(a)
+print(s)
+a-mean(dfCatboys$a)
+s-mean(dfCatboys$s)
+a-mean(dfCatgirls$a)
+s-mean(dfCatgirls$s)
 
 ```
 ```{r}
-sum(a-asCM1[1], a-asCM3[1],a-asCM5[1],a-asCM7[1])/4
-sum(a-asCM2[1], a-asCM4[1],a-asCM6[1],a-asCM8[1])/4
-sum(s-asCM1[2], s-asCM3[2],s-asCM5[2],s-asCM7[2])/4
-sum(s-asCM2[2], s-asCM4[2],s-asCM6[2],s-asCM8[2])/4
+hist(cats$Hwt, main = "Гистограмма кошачьих весов", xlab = "Вес сердца в граммах", prob=TRUE,breaks = 25,col.main = "blue", col = "lightblue")
+legend("topright", legend = c("По котам", "По кошкам"),
+lwd=2, col=c("red","orange"))
+curve(dgamma(x, shape = colMeans(dfCatboys)[1], scale = colMeans(dfCatboys)[2]), from = 0, to = 25, add=TRUE, lwd = 3,col = "red")
+curve(dgamma(x, shape = colMeans(dfCatgirls)[1], scale = colMeans(dfCatgirls)[2]), from = 0, to = 25,add=TRUE, lwd = 3, col= "orange")
 ```
 
 
+Пик по количеству котов находится левее, чем по кошкам. Связано это с тем, что первая выборка составляет 1/3 от базовой (47 из 144), а вторая 2/3(97 из 144). И если в первую попадет большое количество экстремальных значений, то не будет достаточного количества средних значений, чтоб достаточно уравновесить эти максимумы или минимумы. С выборкой по количеству кошек все обстоит проще. Отклонения не такие масштабные. Причем необходимо понимать, что в каждую выборку попадают и коты и кошки, поэтому и вариации отклонений могут быть различными, ведь выборка случайна.
 
 
 
