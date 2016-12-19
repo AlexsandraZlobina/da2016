@@ -1,0 +1,112 @@
+---
+title: "lab5"
+output: html_document
+---
+#Лабораторная работа 5
+
+##
+
+```{r}
+library(MASS) 
+data(cats)
+summary(cats)
+```
+```{r}
+gamma.estimate = function(x)
+{
+   a = round(mean(x)**2/var(x), 3)
+   s = round(var(x)/mean(x), 3)
+   return(c(a,s))
+}
+```
+Возьмите данные четырёх первых кошек из набора данных. Используя функцию gamma.estimate, получите оценки s и a для каждой кошки из выбранных. Получите стандартную ошибку методом перочинного ножа для a и для s. Не нужно писать для этого функции, просто вызовите нужное кол-во раз функцию, сохраните результаты в переменные или вектор и рассчитайте дисперсию.
+
+Первые 4 кошки
+```{r}
+First4 = cats[1:4,]
+```
+
+```{r}
+df1=data.frame(a=gamma.estimate(First4$Hwt[c(2:4)])[1],s=gamma.estimate(First4$Hwt[c(2:4)])[2])
+df2=data.frame(a=gamma.estimate(First4$Hwt[c(1,3:4)])[1],s=gamma.estimate(First4$Hwt[c(1,3:4)])[2])
+df3=data.frame(a=gamma.estimate(First4$Hwt[c(1,2,4)])[1],s=gamma.estimate(First4$Hwt[c(1,2,4)])[2])
+df4=data.frame(a=gamma.estimate(First4$Hwt[c(1:3)])[1],s=gamma.estimate(First4$Hwt[c(1:3)])[2])
+df=rbind(df1,df2,df3,df4)
+aSE = ((9/4)*var(df$a))^(0.5)
+sSE = ((9/4)*var(df$s))^(0.5)
+aSE
+sSE
+```
+
+```{r}
+my.gamma.jk = function(x)
+{
+  ca = c()
+  cs = c()
+    n = length(x)
+    for(i in 1:n)
+    {
+     
+        ca = c(ca, a=gamma.estimate(x[-i])[1])
+        cs = c(cs, s=gamma.estimate(x[-i])[2])
+    } 
+  aSE = sqrt(((n-1)^2/n)*var(ca))
+  sSE = sqrt(((n-1)^2/n)*var(cs))
+  return(c(A_SE=aSE,S_SE=sSE))
+}
+```
+
+```{r}
+my.gamma.jk (First4$Hwt)
+```
+
+Данные сходятся
+Вызовите написанную функцию для получения стандартных ошибок a и s для полного набора данных.
+```{r}
+my.gamma.jk (cats$Hwt)
+```
+
+Рассчитайте параметры a и s раздельно для кошек и котов.Найдите jackknife SE для полученных параметров 
+```{r}
+Catboys = subset(cats, cats$Sex == "F")
+Catgirls = subset(cats, cats$Sex == "M")
+gamma.estimate (Catboys$Hwt)
+gamma.estimate(Catgirls$Hwt)
+
+my.gamma.jk (Catboys$Hwt)
+my.gamma.jk (Catgirls$Hwt)
+```
+Рассчитайте разницу оцениваемых параметров между кошками и котами и стандартное отклонение разницы
+```{r}
+mgjkM = c(my.gamma.jk (Catboys$Hwt))
+mgjkF = c(my.gamma.jk (Catgirls$Hwt))
+print(c(mgjkM,mgjkF) )
+mgjkM-mgjkF
+
+```
+```{r}
+SO_A = sqrt(mgjkM[1]^2 + mgjkF[1]^2) ##разница "а" между кошками и котами 
+SO_S = sqrt(mgjkM[2]^2 + mgjkF[2]^2)##разница "s" между кошками и котами 
+SO_AD = (mgjkM[1] - mgjkF[1])/SO_A ##стандартное отклонение разницы "а".
+SO_SD = (mgjkM[2] - mgjkF[2])/SO_S ##стандартное отклонение разницы "s".
+print(c(SO_A,SO_S, SO_AD, SO_SD))
+```
+Как видно, разница формы между кошками и котами достаточно велика. Логично, что самцы, в большинстве случаев, более крупные, нежели самки. И раз они крупнее, то и вес сердца у них должен быть больше, а значит и значение формы.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
